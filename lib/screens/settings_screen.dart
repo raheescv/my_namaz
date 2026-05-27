@@ -225,19 +225,18 @@ class SettingsScreen extends ConsumerWidget {
     if (ok != true) return;
     await DataWipe.everything();
 
-    // Reset all in-memory state so the UI reflects a fresh app.
+    // Reset selected date and in-memory caches.
+    ref.read(selectedDateProvider.notifier).state =
+        DateX.dayOnly(DateTime.now());
     ref.invalidate(profileProvider);
     ref.invalidate(allRecordsProvider);
     ref.invalidate(selectedRecordProvider);
-    ref.read(selectedDateProvider.notifier).state =
-        DateX.dayOnly(DateTime.now());
-
-    // Also tear down the StateNotifier-based controllers so their
-    // cached state (theme, locale, login) reloads from the now-empty prefs.
     ref.invalidate(settingsProvider);
-    ref.invalidate(authProvider);
 
-    // The authProvider listener in the router will redirect to /login
-    // once its reloaded state shows isLoggedIn=false.
+    // Flip the login flag — this triggers the router's auth listener,
+    // which redirects to /login. Updating state in place (rather than
+    // invalidating authProvider) keeps the existing controller and
+    // refresh listener attached, avoiding a black flash during the swap.
+    await ref.read(authProvider.notifier).setLoggedIn(false);
   }
 }
