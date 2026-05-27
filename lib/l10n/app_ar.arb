@@ -1,0 +1,33 @@
+{
+  "@@locale": "ar",
+  "appName": "نمازي",
+  "tagline": "تتبع صلاتك اليومية",
+  "continueLabel": "متابعة",
+  "mobileNumber": "رقم الجوال",
+  "yourName": "اسمك",
+  "emailOptional": "البريد الإلكتروني (اختياري)",
+  "loginDisclaimer": "تُحفظ بياناتك على هذا الجهاز فقط. لا يوجد OTP ولا رسائل نصية، ولا يغادر شيء هاتفك.",
+  "greeting": "السلام عليكم",
+  "today": "اليوم",
+  "fajr": "الفجر",
+  "dhuhr": "الظهر",
+  "asr": "العصر",
+  "maghrib": "المغرب",
+  "isha": "العشاء",
+  "completedOf": "{done} / {total} مكتملة",
+  "@completedOf": {
+    "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "streakDays": "سلسلة {n} يوم",
+  "@streakDays": {"placeholders": {"n": {"type": "int"}}},
+  "notes": "ملاحظات",
+  "calendar": "التقويم",
+  "reports": "التقارير",
+  "qibla": "القبلة",
+  "settings": "الإعدادات",
+  "profile": "الملف الشخصي",
+  "tableReport": "تقرير الجدول",
+  "save": "حفظ",
+  "logout": "تسجيل الخروج",
+  "deleteAll": "حذف جميع بياناتي"
+}

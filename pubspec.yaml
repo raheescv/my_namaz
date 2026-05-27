@@ -1,0 +1,73 @@
+name: my_namaz
+description: "Track your daily Salah"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State + routing
+  flutter_riverpod: ^2.5.1
+  go_router: ^14.2.7
+
+  # Storage
+  sqflite: ^2.3.3
+  sqflite_common_ffi: ^2.3.3
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.2
+
+  # UI / charts / calendar
+  table_calendar: ^3.1.2
+  fl_chart: ^0.69.0
+  intl: ^0.20.2
+  intl_phone_field: ^3.2.0
+  image_picker: ^1.1.2
+
+  # Qibla / sensors / location
+  geolocator: ^13.0.1
+  flutter_compass: ^0.8.1
+  permission_handler: ^11.3.1
+  geocoding: ^3.0.0
+
+  # Notifications
+  flutter_local_notifications: ^17.2.3
+  timezone: ^0.9.4
+
+  # Hijri dates
+  hijri: ^3.0.0
+
+  # Export
+  pdf: ^3.11.1
+  csv: ^6.0.0
+  share_plus: ^10.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/icon/
+
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  macos:
+    generate: true
+  adaptive_icon_background: "#0F4F3A"
+  adaptive_icon_foreground: "assets/icon/icon.png"

@@ -1,0 +1,33 @@
+{
+  "@@locale": "en",
+  "appName": "My Namaz",
+  "tagline": "Track your daily Salah",
+  "continueLabel": "Continue",
+  "mobileNumber": "Mobile number",
+  "yourName": "Your name",
+  "emailOptional": "Email (optional)",
+  "loginDisclaimer": "Your data is stored only on this device. No OTP, no SMS, nothing leaves your phone.",
+  "greeting": "Assalamu Alaikum",
+  "today": "Today",
+  "fajr": "Fajr",
+  "dhuhr": "Dhuhr",
+  "asr": "Asr",
+  "maghrib": "Maghrib",
+  "isha": "Isha",
+  "completedOf": "{done} / {total} completed",
+  "@completedOf": {
+    "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "streakDays": "{n}-day streak",
+  "@streakDays": {"placeholders": {"n": {"type": "int"}}},
+  "notes": "Notes",
+  "calendar": "Calendar",
+  "reports": "Reports",
+  "qibla": "Qibla",
+  "settings": "Settings",
+  "profile": "Profile",
+  "tableReport": "Table Report",
+  "save": "Save",
+  "logout": "Logout",
+  "deleteAll": "Delete all my data"
+}

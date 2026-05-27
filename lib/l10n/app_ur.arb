@@ -1,0 +1,33 @@
+{
+  "@@locale": "ur",
+  "appName": "میری نماز",
+  "tagline": "اپنی روزانہ کی نماز ٹریک کریں",
+  "continueLabel": "جاری رکھیں",
+  "mobileNumber": "موبائل نمبر",
+  "yourName": "آپ کا نام",
+  "emailOptional": "ای میل (اختیاری)",
+  "loginDisclaimer": "آپ کا ڈیٹا صرف اس ڈیوائس پر محفوظ ہے۔ کوئی OTP، کوئی SMS، کچھ بھی آپ کے فون سے باہر نہیں جاتا۔",
+  "greeting": "السلام علیکم",
+  "today": "آج",
+  "fajr": "فجر",
+  "dhuhr": "ظہر",
+  "asr": "عصر",
+  "maghrib": "مغرب",
+  "isha": "عشاء",
+  "completedOf": "{done} / {total} مکمل",
+  "@completedOf": {
+    "placeholders": {"done": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "streakDays": "{n} دن کا سلسلہ",
+  "@streakDays": {"placeholders": {"n": {"type": "int"}}},
+  "notes": "نوٹس",
+  "calendar": "کیلنڈر",
+  "reports": "رپورٹس",
+  "qibla": "قبلہ",
+  "settings": "ترتیبات",
+  "profile": "پروفائل",
+  "tableReport": "ٹیبل رپورٹ",
+  "save": "محفوظ کریں",
+  "logout": "لاگ آؤٹ",
+  "deleteAll": "میرا تمام ڈیٹا حذف کریں"
+}
