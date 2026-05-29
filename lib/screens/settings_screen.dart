@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../models/prayer_enum.dart';
+import '../providers/adhan_settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/prayer_provider.dart';
 import '../providers/prayer_times_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/adhan_player_service.dart';
 import '../services/data_wipe.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_times_service.dart';
@@ -185,6 +188,10 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ]),
+
+          const SizedBox(height: 22),
+          _sectionLabel(theme, 'Adhan'),
+          _AdhanSection(),
 
           const SizedBox(height: 22),
           _sectionLabel(theme, 'Account'),
@@ -475,6 +482,151 @@ class SettingsScreen extends ConsumerWidget {
         );
       } catch (_) {}
     }
+  }
+}
+
+class _AdhanSection extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_AdhanSection> createState() => _AdhanSectionState();
+}
+
+class _AdhanSectionState extends ConsumerState<_AdhanSection> {
+  bool _testing = false;
+
+  Future<void> _test(BuildContext context, AdhanChoice choice) async {
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _testing = true);
+    final ok = await AdhanPlayerService.instance.play(choice);
+    if (mounted) setState(() => _testing = false);
+    if (!ok) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(choice.assetPath == null
+              ? 'System default will play at prayer time'
+              : 'Missing audio file: ${choice.assetPath}\nAdd it under assets/audio/'),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  }
+
+  Future<void> _pickAdhan(BuildContext context, String current) async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Choose adhan sound',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 16)),
+            ),
+            for (final a in AdhanPlayerService.availableAdhans)
+              ListTile(
+                leading: const Icon(Icons.music_note_outlined),
+                title: Text(a.label),
+                subtitle: a.reciter != null ? Text(a.reciter!) : null,
+                trailing: current == a.id
+                    ? const Icon(Icons.check,
+                        color: AppColors.primaryGreen)
+                    : null,
+                onTap: () => Navigator.pop(context, a.id),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null) {
+      await ref.read(adhanSettingsProvider.notifier).setChoice(picked);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final s = ref.watch(adhanSettingsProvider);
+    final choice = s.choice;
+
+    return SettingsGroup(children: [
+      SettingsTile(
+        icon: Icons.volume_up_outlined,
+        iconColor: AppColors.sectionCoral,
+        title: 'Play adhan at prayer time',
+        subtitle: s.enabled ? 'Enabled' : 'Disabled',
+        trailing: Switch(
+          value: s.enabled,
+          onChanged: (v) async {
+            await ref.read(adhanSettingsProvider.notifier).setEnabled(v);
+          },
+        ),
+      ),
+      SettingsTile(
+        icon: Icons.music_note_outlined,
+        iconColor: AppColors.sectionPurple,
+        title: 'Adhan sound',
+        subtitle: choice.label,
+        enabled: s.enabled,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: 'Test',
+              icon: _testing
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.play_arrow_rounded),
+              onPressed: s.enabled && !_testing
+                  ? () => _test(context, choice)
+                  : null,
+            ),
+            const Icon(Icons.chevron_right, size: 20),
+          ],
+        ),
+        onTap: s.enabled ? () => _pickAdhan(context, choice.id) : null,
+      ),
+      ExpandableSettingsTile(
+        icon: Icons.volume_off_outlined,
+        iconColor: AppColors.sectionBlue,
+        title: 'Per-prayer mute',
+        subtitle: _muteSummary(s),
+        children: [
+          for (final p in Prayer.all)
+            SubSettingsRow(
+              title: p.name,
+              trailing: Switch(
+                value: s.isMuted(p),
+                onChanged: s.enabled
+                    ? (v) => ref
+                        .read(adhanSettingsProvider.notifier)
+                        .setMuted(p, v)
+                    : null,
+              ),
+            ),
+        ],
+      ),
+      if (!s.enabled)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+          child: Text(
+            'Turn on "Play adhan at prayer time" to choose a sound and mute individual prayers.',
+            style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ),
+    ]);
+  }
+
+  String _muteSummary(AdhanSettings s) {
+    final muted = Prayer.all.where(s.isMuted).map((p) => p.name).toList();
+    if (muted.isEmpty) return 'All 5 prayers will play';
+    if (muted.length == 5) return 'All muted';
+    return 'Muted: ${muted.join(", ")}';
   }
 }
 

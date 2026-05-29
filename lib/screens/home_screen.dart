@@ -72,7 +72,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     return Scaffold(
-      body: SafeArea(
+      resizeToAvoidBottomInset: true,
+      body: GestureDetector(
+        // Tap anywhere outside the notes field to dismiss the keyboard.
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: SafeArea(
         bottom: false,
         child: recordAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -110,18 +115,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 TextField(
                   controller: _notesCtrl,
                   maxLines: 3,
-                  decoration: const InputDecoration(
+                  textInputAction: TextInputAction.newline,
+                  decoration: InputDecoration(
                     hintText: 'How was your day?',
+                    suffixIcon: _notesCtrl.text.isEmpty
+                        ? null
+                        : IconButton(
+                            tooltip: 'Done',
+                            icon: const Icon(Icons.keyboard_hide),
+                            onPressed: () => FocusManager
+                                .instance.primaryFocus
+                                ?.unfocus(),
+                          ),
                   ),
-                  onChanged: (v) => ref
-                      .read(prayerControllerProvider)
-                      .saveNotes(v.isEmpty ? null : v),
+                  onChanged: (v) {
+                    ref
+                        .read(prayerControllerProvider)
+                        .saveNotes(v.isEmpty ? null : v);
+                    setState(() {}); // refresh suffix icon
+                  },
                 ),
               ],
             ),
               ),
             );
           },
+        ),
         ),
       ),
     );

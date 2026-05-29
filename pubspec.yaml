@@ -48,6 +48,10 @@ dependencies:
   # Prayer time calculation (offline)
   adhan: ^2.0.0-nullsafety.2
 
+  # Audio playback for adhan
+  just_audio: ^0.9.42
+  audio_session: ^0.1.21
+
   # Export
   pdf: ^3.11.1
   csv: ^6.0.0
@@ -64,6 +68,7 @@ flutter:
   generate: true
   assets:
     - assets/icon/
+    - assets/audio/
 
 flutter_launcher_icons:
   image_path: "assets/icon/icon.png"
