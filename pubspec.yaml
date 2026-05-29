@@ -45,6 +45,9 @@ dependencies:
   # Hijri dates
   hijri: ^3.0.0
 
+  # Prayer time calculation (offline)
+  adhan: ^2.0.0-nullsafety.2
+
   # Export
   pdf: ^3.11.1
   csv: ^6.0.0

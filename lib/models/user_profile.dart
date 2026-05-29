@@ -1,5 +1,5 @@
 class UserProfile {
-  final int id;
+  final int? id; // null before insert, assigned by sqlite
   final String mobile;
   final String countryCode;
   final String name;
@@ -10,7 +10,7 @@ class UserProfile {
   final DateTime updatedAt;
 
   UserProfile({
-    this.id = 1,
+    this.id,
     required this.mobile,
     required this.countryCode,
     required this.name,
@@ -22,6 +22,7 @@ class UserProfile {
   });
 
   UserProfile copyWith({
+    int? id,
     String? mobile,
     String? countryCode,
     String? name,
@@ -34,7 +35,7 @@ class UserProfile {
     bool clearCity = false,
   }) {
     return UserProfile(
-      id: id,
+      id: id ?? this.id,
       mobile: mobile ?? this.mobile,
       countryCode: countryCode ?? this.countryCode,
       name: name ?? this.name,
@@ -47,7 +48,7 @@ class UserProfile {
   }
 
   Map<String, dynamic> toMap() => {
-        'id': id,
+        if (id != null) 'id': id,
         'mobile': mobile,
         'countryCode': countryCode,
         'name': name,
@@ -59,7 +60,7 @@ class UserProfile {
       };
 
   factory UserProfile.fromMap(Map<String, dynamic> m) => UserProfile(
-        id: m['id'] as int,
+        id: m['id'] as int?,
         mobile: m['mobile'] as String,
         countryCode: m['countryCode'] as String,
         name: m['name'] as String,
@@ -71,6 +72,10 @@ class UserProfile {
       );
 
   String get fullPhone => '$countryCode$mobile';
+
+  /// Stable identifier for prefs lookups: "+91 9876543210".
+  String get accountKey => '$countryCode|$mobile';
+
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
     if (parts.isEmpty || parts.first.isEmpty) return '?';

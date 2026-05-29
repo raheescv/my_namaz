@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/phone_number.dart';
 
-import '../models/user_profile.dart';
-import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../theme/colors.dart';
 import '../utils/constants.dart';
@@ -42,18 +40,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _phone == null) return;
     setState(() => _saving = true);
-    final now = DateTime.now();
-    final profile = UserProfile(
-      mobile: _phone!.number,
-      countryCode: '+${_phone!.countryCode.replaceAll('+', '')}',
-      name: _nameCtrl.text.trim(),
-      email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
-      createdAt: now,
-      updatedAt: now,
-    );
-    await ref.read(profileProvider.notifier).save(profile);
-    await ref.read(authProvider.notifier).setLoggedIn(true);
-    if (mounted) context.go('/home');
+    try {
+      await ref.read(profileControllerProvider).switchOrCreate(
+            countryCode: '+${_phone!.countryCode.replaceAll('+', '')}',
+            mobile: _phone!.number,
+            name: _nameCtrl.text.trim(),
+            email: _emailCtrl.text.trim().isEmpty
+                ? null
+                : _emailCtrl.text.trim(),
+          );
+      if (mounted) context.go('/home');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: $e')),
+        );
+        setState(() => _saving = false);
+      }
+    }
   }
 
   @override
@@ -136,7 +140,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Your data is stored only on this device. No OTP, no SMS, nothing leaves your phone.',
+                  'Your data is stored on this device, separately for each mobile number. No OTP, no SMS.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant),

@@ -7,35 +7,65 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/database.dart';
 import '../data/prayer_dao.dart';
 import '../data/user_dao.dart';
+import '../models/user_profile.dart';
 import 'notification_service.dart';
 
 class DataWipe {
   DataWipe._();
 
-  /// Erase every trace of the user from this device:
-  /// - all prayer records
-  /// - user profile
-  /// - avatar files in the app documents directory
-  /// - all SharedPreferences (theme, locale, login flag, etc.)
-  /// - any scheduled notifications
-  ///
-  /// Also sets a flag so the auto-seeder in main.dart does not refill
-  /// the database with sample data after the wipe.
+  /// Erase one account: their prayer records, their profile row, their
+  /// avatar file, scheduled notifications, and the "current user" pointer.
+  /// Other users on this device remain intact.
+  static Future<void> currentUser(UserProfile user) async {
+    try {
+      if (user.id != null) {
+        await PrayerDao().deleteAllForUser(user.id!);
+        await UserDao().deleteById(user.id!);
+      }
+    } catch (e) {
+      debugPrint('[wipe.user] db: $e');
+    }
+
+    // Their avatar, if any
+    try {
+      final path = user.avatarPath;
+      if (path != null) {
+        final f = File(path);
+        if (await f.exists()) await f.delete();
+      }
+    } catch (e) {
+      debugPrint('[wipe.user] avatar: $e');
+    }
+
+    try {
+      await NotificationService.cancelAll();
+    } catch (e) {
+      debugPrint('[wipe.user] notif: $e');
+    }
+
+    // Forget the current-user pointer.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('currentUserId');
+    } catch (e) {
+      debugPrint('[wipe.user] prefs: $e');
+    }
+  }
+
+  /// Nuclear option: erase every user on this device, every record,
+  /// every preference, every avatar file. Useful for QA / testing only.
   static Future<void> everything() async {
-    // 1. Database
     try {
       await PrayerDao().deleteAll();
       await UserDao().deleteAll();
       await AppDatabase.instance.close();
     } catch (e) {
-      debugPrint('[wipe] db: $e');
+      debugPrint('[wipe.all] db: $e');
     }
 
-    // 2. Avatar files
     try {
       final dir = await getApplicationDocumentsDirectory();
-      final entities = dir.listSync();
-      for (final e in entities) {
+      for (final e in dir.listSync()) {
         final name = e.path.split('/').last;
         if (name.startsWith('avatar_') && e is File) {
           try {
@@ -44,35 +74,20 @@ class DataWipe {
         }
       }
     } catch (e) {
-      debugPrint('[wipe] avatars: $e');
+      debugPrint('[wipe.all] avatars: $e');
     }
 
-    // 3. Notifications
     try {
       await NotificationService.cancelAll();
     } catch (e) {
-      debugPrint('[wipe] notifications: $e');
+      debugPrint('[wipe.all] notif: $e');
     }
 
-    // 4. SharedPreferences — wipe everything, then mark that the user
-    // explicitly cleared so we don't re-seed sample data on next launch.
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      await prefs.setBool('wipedByUser', true);
     } catch (e) {
-      debugPrint('[wipe] prefs: $e');
-    }
-  }
-
-  /// Returns true if the user has previously chosen "Delete all my data".
-  /// Used to suppress the sample-data seeder.
-  static Future<bool> wasWiped() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool('wipedByUser') ?? false;
-    } catch (_) {
-      return false;
+      debugPrint('[wipe.all] prefs: $e');
     }
   }
 }

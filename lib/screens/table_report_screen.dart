@@ -58,15 +58,19 @@ class _TableReportScreenState extends ConsumerState<TableReportScreen> {
     return AppColors.statusMissed.withValues(alpha: 0.15);
   }
 
+  static const _weekdays = [
+    'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
+  ];
+
   String _fmtDate(DateTime d) =>
-      '${d.day}-${d.month}-${d.year}';
+      '${_weekdays[d.weekday - 1]}, ${d.day}-${d.month}-${d.year}';
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final recordsAsync =
         ref.watch(rangeRecordsProvider((start: _from, end: _to)));
-    final profileAsync = ref.watch(profileProvider);
+    final profile = ref.watch(profileProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -76,7 +80,6 @@ class _TableReportScreenState extends ConsumerState<TableReportScreen> {
             icon: const Icon(Icons.download_outlined),
             onSelected: (v) async {
               final records = recordsAsync.value ?? [];
-              final profile = profileAsync.value;
               if (v == 'csv') {
                 await ExportService.exportCsv(records, profile,
                     from: _from, to: _to);

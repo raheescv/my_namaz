@@ -18,7 +18,6 @@ class CalendarScreen extends ConsumerStatefulWidget {
 
 class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   DateTime _focused = DateTime.now();
-  CalendarFormat _format = CalendarFormat.month;
 
   Color? _dotColor(PrayerRecord? r) {
     if (r == null) return null;
@@ -51,8 +50,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     lastDay:
                         DateTime.now().add(const Duration(days: 365)),
                     focusedDay: _focused,
-                    calendarFormat: _format,
-                    onFormatChanged: (f) => setState(() => _format = f),
+                    calendarFormat: CalendarFormat.month,
+                    availableCalendarFormats: const {
+                      CalendarFormat.month: 'Month',
+                    },
+                    headerStyle: const HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                    ),
                     onPageChanged: (d) => _focused = d,
                     onDaySelected: (selected, focused) {
                       ref.read(selectedDateProvider.notifier).state =

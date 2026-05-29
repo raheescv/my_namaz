@@ -1,32 +1,71 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/user_dao.dart';
 import '../models/user_profile.dart';
+import 'auth_provider.dart';
 
-final userDaoProvider = Provider<UserDao>((_) => UserDao());
+/// The current user's profile, as held in auth state.
+/// Editing flows go through ProfileController for updates.
+final profileProvider = Provider<UserProfile?>(
+    (ref) => ref.watch(authProvider.select((s) => s.user)));
 
-class ProfileController extends StateNotifier<AsyncValue<UserProfile?>> {
-  final UserDao _dao;
-  ProfileController(this._dao) : super(const AsyncValue.loading()) {
-    load();
-  }
+class ProfileController {
+  final Ref ref;
+  ProfileController(this.ref);
 
-  Future<void> load() async {
-    state = const AsyncValue.loading();
-    try {
-      state = AsyncValue.data(await _dao.get());
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+  /// Persist edits to the current user. If the mobile number changed and
+  /// another account already exists under that number, returns false —
+  /// the caller should ask the user whether to switch to that account.
+  Future<bool> save(UserProfile next) async {
+    final userDao = ref.read(userDaoProvider);
+    final current = ref.read(authProvider).user;
+    if (current?.id == null) return false;
+
+    // If the mobile changed, check for collision with another account.
+    final mobileChanged = next.mobile != current!.mobile ||
+        next.countryCode != current.countryCode;
+    if (mobileChanged) {
+      final other = await userDao.getByMobile(next.countryCode, next.mobile);
+      if (other != null && other.id != current.id) {
+        // Caller decides whether to switch to other account.
+        return false;
+      }
     }
+
+    final updated = await userDao
+        .updateById(next.copyWith(id: current.id, updatedAt: DateTime.now()));
+    await ref.read(authProvider.notifier).setCurrentUser(updated);
+    return true;
   }
 
-  Future<void> save(UserProfile p) async {
-    await _dao.upsert(p);
-    state = AsyncValue.data(p);
+  /// Switch to the user with the given mobile, creating them if missing.
+  Future<UserProfile> switchOrCreate({
+    required String countryCode,
+    required String mobile,
+    required String name,
+    String? email,
+  }) async {
+    final userDao = ref.read(userDaoProvider);
+    final existing = await userDao.getByMobile(countryCode, mobile);
+    final now = DateTime.now();
+    UserProfile saved;
+    if (existing == null) {
+      saved = await userDao.upsertByMobile(UserProfile(
+        mobile: mobile,
+        countryCode: countryCode,
+        name: name,
+        email: email,
+        createdAt: now,
+        updatedAt: now,
+      ));
+    } else {
+      // Existing user — keep their stored info, only refresh updatedAt.
+      saved = existing.copyWith(updatedAt: now);
+      await userDao.updateById(saved);
+    }
+    await ref.read(authProvider.notifier).setCurrentUser(saved);
+    return saved;
   }
 }
 
-final profileProvider =
-    StateNotifierProvider<ProfileController, AsyncValue<UserProfile?>>(
-  (ref) => ProfileController(ref.watch(userDaoProvider)),
-);
+final profileControllerProvider =
+    Provider<ProfileController>((ref) => ProfileController(ref));

@@ -11,17 +11,30 @@ class NotificationService {
 
   static Future<void> init() async {
     if (_ready) return;
-    tz.initializeTimeZones();
-    const init = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-      iOS: DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-      ),
-    );
-    await _plugin.initialize(init);
-    _ready = true;
+    try {
+      tz.initializeTimeZones();
+      const init = InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        ),
+        macOS: DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        ),
+      );
+      await _plugin.initialize(init);
+      _ready = true;
+    } catch (e) {
+      // Plugin may not be available (e.g. tests, some desktop targets).
+      // Mark ready so callers don't keep retrying; cancelAll/scheduleDaily
+      // will then no-op via their own try/catch.
+      _ready = true;
+      rethrow;
+    }
   }
 
   static Future<void> requestPermissions() async {
@@ -68,8 +81,13 @@ class NotificationService {
   }
 
   static Future<void> cancelAll() async {
-    await init();
-    await _plugin.cancelAll();
+    try {
+      await init();
+      await _plugin.cancelAll();
+    } catch (e) {
+      // If the plugin isn't supported / not initialized, treat cancel as a no-op.
+      // The wipe flow calls this and shouldn't fail if there's nothing to cancel.
+    }
   }
 
   static tz.TZDateTime _nextInstanceOf(int hour, int minute) {

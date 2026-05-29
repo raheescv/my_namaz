@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'providers/auth_provider.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/location_search_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/qibla_screen.dart';
@@ -53,6 +54,10 @@ GoRouter buildRouter(Ref ref) {
       GoRoute(
         path: '/table-report',
         builder: (_, __) => const TableReportScreen(),
+      ),
+      GoRoute(
+        path: '/location-search',
+        builder: (_, __) => const LocationSearchScreen(),
       ),
     ],
   );
